@@ -11,14 +11,14 @@ interface LoginResponse {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, login, init } = useAuth();
+  const { token, user, login, init } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
   useEffect(() => {
     init();
-    if (user) router.push("/products");
-  }, [user, router, init]);
+    if (token) router.replace("/products");
+  }, [init, token, router]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -32,7 +32,11 @@ export default function LoginPage() {
         body: JSON.stringify(form),
       });
       login(data.token, data.user);
-      router.push("/products");
+
+      // 🔥 pastikan Zustand sempat update sebelum redirect
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      router.replace("/products");
     } catch (err: any) {
       setError(err.message);
     }
@@ -66,12 +70,6 @@ export default function LoginPage() {
         >
           Login
         </button>
-        <p className="text-sm text-center">
-          Belum punya akun?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Daftar
-          </a>
-        </p>
       </form>
     </div>
   );
